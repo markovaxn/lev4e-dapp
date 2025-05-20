@@ -113,8 +113,6 @@
         const tx = await contract.claim();
         await tx.wait();
 
-        alert("✅ You received 1 5LV!");
-
         // 3. Prompt MetaMask to add the 5LV token
         await window.ethereum.request({
           method: 'wallet_watchAsset',
