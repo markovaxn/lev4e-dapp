@@ -20,11 +20,21 @@
 
     .falling-note {
       position: absolute;
-      animation: fall 3s linear forwards;
+      animation: fall 2s linear forwards;
       z-index: 10;
       width: 100px;
       height: auto;
       pointer-events: none;
+    }
+
+    .thinking-image {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 150px;
+      height: auto;
+      transform: translate(-50%, -50%);
+      z-index: 20;
     }
 
     .glow-on-hover {
@@ -86,24 +96,39 @@
   </footer>
 
   <script>
-    const tokenAddress = '0x1DB8096DEC8B0e30eA4435d38960d7f3B644923b'; // Replace with your deployed contract address
+    const tokenAddress = '0x1DB8096DEC8B0e30eA4435d38960d7f3B644923b'; // Replace with your real contract address
     const tokenAbi = [
       "function claim() public"
     ];
 
     function showFallingNote() {
       const note = document.createElement('img');
-      note.src = '5bgn.jpeg'; // Local image
+      note.src = '5bgn.jpeg';
       note.className = 'falling-note';
       const randomLeft = Math.random() * (window.innerWidth - 150);
       note.style.left = `${randomLeft}px`;
       const sizeVariation = 0.8 + Math.random() * 0.4;
       note.style.transform = `scale(${sizeVariation})`;
       document.getElementById('notesContainer').appendChild(note);
-      setTimeout(() => note.remove(), 3000);
+      setTimeout(() => note.remove(), 2000);
+    }
+
+    function showThinkingImage() {
+      const thinking = document.createElement('img');
+      thinking.src = 'thinking.jpeg';
+      thinking.className = 'thinking-image';
+      thinking.id = 'thinking-image';
+      document.body.appendChild(thinking);
+    }
+
+    function removeThinkingImage() {
+      const img = document.getElementById('thinking-image');
+      if (img) img.remove();
     }
 
     document.getElementById('generateBtn').addEventListener('click', async function () {
+      showThinkingImage();
+
       try {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         await provider.send("eth_requestAccounts", []);
@@ -113,27 +138,38 @@
         const tx = await contract.claim();
         await tx.wait();
 
-        // ✅ Show animation only after successful claim
-        showFallingNote();
+        removeThinkingImage();
 
-        // ✅ Prompt MetaMask to add 5LV token
-        await window.ethereum.request({
-          method: 'wallet_watchAsset',
-          params: {
-            type: 'ERC20',
-            options: {
-              address: tokenAddress,
-              symbol: '5LV',
-              decimals: 18,
-              image: 'https://markovaxn.github.io/lev4e-dapp/5bgnicon.jpeg'
+        // Show 20 falling notes over 2 seconds
+        for (let i = 0; i < 20; i++) {
+          setTimeout(() => showFallingNote(), Math.random() * 2000);
+        }
+
+        // Only prompt once per session to add token
+        if (!sessionStorage.getItem('5lv-added')) {
+          await window.ethereum.request({
+            method: 'wallet_watchAsset',
+            params: {
+              type: 'ERC20',
+              options: {
+                address: tokenAddress,
+                symbol: '5LV',
+                decimals: 18,
+                image: 'https://markovaxn.github.io/lev4e-dapp/5bgnicon.jpeg'
+              },
             },
-          },
-        }).catch((err) => {
-          console.warn("Token add rejected", err);
-        });
+          }).then((added) => {
+            if (added) {
+              sessionStorage.setItem('5lv-added', 'true');
+            }
+          }).catch((err) => {
+            console.warn("Token add rejected", err);
+          });
+        }
 
       } catch (err) {
         console.error(err);
+        removeThinkingImage();
         alert("⚠️ Failed to claim 5LV. Check connection and contract.");
       }
     });
