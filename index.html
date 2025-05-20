@@ -86,15 +86,14 @@
   </footer>
 
   <script>
-    const tokenAddress = '0x1DB8096DEC8B0e30eA4435d38960d7f3B644923b'; // 🔁 Replace with your deployed contract address
+    const tokenAddress = '0x1DB8096DEC8B0e30eA4435d38960d7f3B644923b'; // Replace with your deployed contract address
     const tokenAbi = [
       "function claim() public"
     ];
 
-    document.getElementById('generateBtn').addEventListener('click', async function () {
-      // 1. Show animated image
+    function showFallingNote() {
       const note = document.createElement('img');
-      note.src = '5bgn.jpeg'; // Local image in repo root
+      note.src = '5bgn.jpeg'; // Local image
       note.className = 'falling-note';
       const randomLeft = Math.random() * (window.innerWidth - 150);
       note.style.left = `${randomLeft}px`;
@@ -102,8 +101,9 @@
       note.style.transform = `scale(${sizeVariation})`;
       document.getElementById('notesContainer').appendChild(note);
       setTimeout(() => note.remove(), 3000);
+    }
 
-      // 2. Web3 interaction
+    document.getElementById('generateBtn').addEventListener('click', async function () {
       try {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         await provider.send("eth_requestAccounts", []);
@@ -113,7 +113,10 @@
         const tx = await contract.claim();
         await tx.wait();
 
-        // 3. Prompt MetaMask to add the 5LV token
+        // ✅ Show animation only after successful claim
+        showFallingNote();
+
+        // ✅ Prompt MetaMask to add 5LV token
         await window.ethereum.request({
           method: 'wallet_watchAsset',
           params: {
@@ -122,10 +125,13 @@
               address: tokenAddress,
               symbol: '5LV',
               decimals: 18,
-              image: 'https://markovaxn.github.io/lev4e-dapp/5bgnicon.jpeg' // update if using a custom domain
+              image: 'https://markovaxn.github.io/lev4e-dapp/5bgnicon.jpeg'
             },
           },
+        }).catch((err) => {
+          console.warn("Token add rejected", err);
         });
+
       } catch (err) {
         console.error(err);
         alert("⚠️ Failed to claim 5LV. Check connection and contract.");
