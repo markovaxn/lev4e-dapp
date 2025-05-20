@@ -19,7 +19,7 @@ A simple interactive dApp that rewards users with 1 5LV token on each click.
 2. Connect MetaMask when prompted
 3. Click the **"dai 5lv"** button
 4. Watch the animation
-5. Receive **1 5LV token** (check MetaMask)
+5. Receive 1 **'5LV' token** (check MetaMask)
 
 ---
 
