@@ -86,7 +86,7 @@
   </footer>
 
   <script>
-    const tokenAddress = '0x1DB8096DEC8B0e30eA4435d38960d7f3B644923b'; // 🔁 Replace this with your real token contract address
+    const tokenAddress = '0x1DB8096DEC8B0e30eA4435d38960d7f3B644923b'; // 🔁 Replace with your deployed contract address
     const tokenAbi = [
       "function claim() public"
     ];
@@ -94,7 +94,7 @@
     document.getElementById('generateBtn').addEventListener('click', async function () {
       // 1. Show animated image
       const note = document.createElement('img');
-      note.src = 'https://new.sportal365images.com/process/smp-images-production/profit.bg/24012024/924a3fce-c516-44e4-aaba-43b3805d3fdc.jpg?operations=autocrop(256:256)';
+      note.src = '5bgn.jpeg'; // Local image in repo root
       note.className = 'falling-note';
       const randomLeft = Math.random() * (window.innerWidth - 150);
       note.style.left = `${randomLeft}px`;
@@ -113,10 +113,24 @@
         const tx = await contract.claim();
         await tx.wait();
 
-        alert("✅ You received 5LV!");
+        alert("✅ You received 1 5LV!");
+
+        // 3. Prompt MetaMask to add the 5LV token
+        await window.ethereum.request({
+          method: 'wallet_watchAsset',
+          params: {
+            type: 'ERC20',
+            options: {
+              address: tokenAddress,
+              symbol: '5LV',
+              decimals: 18,
+              image: 'https://markovaxn.github.io/lev4e-dapp/5bgnicon.jpeg' // update if using a custom domain
+            },
+          },
+        });
       } catch (err) {
         console.error(err);
-        alert("⚠️ Failed to claim 5LV. Check if the wallet is connected and the contract supports public minting.");
+        alert("⚠️ Failed to claim 5LV. Check connection and contract.");
       }
     });
   </script>
