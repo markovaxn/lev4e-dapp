@@ -29,7 +29,7 @@
 
     .thinking-image {
       position: absolute;
-      top: 50%;
+      top: 30%;
       left: 50%;
       width: 150px;
       height: auto;
@@ -96,7 +96,7 @@
   </footer>
 
   <script>
-    const tokenAddress = '0x1DB8096DEC8B0e30eA4435d38960d7f3B644923b'; // Replace with your real contract address
+    const tokenAddress = '0x1DB8096DEC8B0e30eA4435d38960d7f3B644923b'; // 🔁 Replace this with your real deployed contract address
     const tokenAbi = [
       "function claim() public"
     ];
@@ -128,6 +128,7 @@
 
     document.getElementById('generateBtn').addEventListener('click', async function () {
       showThinkingImage();
+      document.body.style.cursor = 'wait';
 
       try {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -139,14 +140,15 @@
         await tx.wait();
 
         removeThinkingImage();
+        document.body.style.cursor = 'default';
 
-        // Show 20 falling notes over 2 seconds
+        // 🎉 Drop 20 notes in random positions over 2 seconds
         for (let i = 0; i < 20; i++) {
           setTimeout(() => showFallingNote(), Math.random() * 2000);
         }
 
-        // Only prompt once per session to add token
-        if (!sessionStorage.getItem('5lv-added')) {
+        // 🧠 Add token to MetaMask (only once per device)
+        if (!localStorage.getItem('5lv-added')) {
           await window.ethereum.request({
             method: 'wallet_watchAsset',
             params: {
@@ -160,7 +162,7 @@
             },
           }).then((added) => {
             if (added) {
-              sessionStorage.setItem('5lv-added', 'true');
+              localStorage.setItem('5lv-added', 'true');
             }
           }).catch((err) => {
             console.warn("Token add rejected", err);
@@ -170,6 +172,7 @@
       } catch (err) {
         console.error(err);
         removeThinkingImage();
+        document.body.style.cursor = 'default';
         alert("⚠️ Failed to claim 5LV. Check connection and contract.");
       }
     });
