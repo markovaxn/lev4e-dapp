@@ -27,6 +27,6 @@ A simple interactive dApp that rewards users with 1 5LV token on each click.
 
 - **Name**: 5LV
 - **Network**: Sepolia testnet
-- **Contract Address**: 0x3176B5EE4BF8F3EebbC090dDa3D5160511Aa7D09
+- **Contract Address**: 0x1DB8096DEC8B0e30eA4435d38960d7f3B644923b
 
 ---
