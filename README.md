@@ -9,17 +9,15 @@ A simple interactive dApp that rewards users with 1 5LV token on each click.
 - MetaMask browser extension
 - Sepolia testnet selected in MetaMask
 - Some Sepolia ETH (use faucet)
-- Browser that supports Ethereum (Chrome or Firefox recommended)
 
 ---
 
 ## 🚀 How to Use
 
 1. Visit the site: https://markovaxn.github.io/lev4e-dapp
-2. Connect MetaMask when prompted
-3. Click the **"dai 5lv"** button
-4. Watch the animation
-5. Receive 1 **'5LV' token** (check MetaMask)
+2. Click button
+3. Connect MetaMask when prompted
+4. Receive a **'5LV' token** (check MetaMask)
 
 ---
 
