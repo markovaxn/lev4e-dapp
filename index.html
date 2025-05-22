@@ -82,12 +82,24 @@
     <h1 class="text-5xl font-bold mb-2 tracking-tighter">lev4e</h1>
   </div>
 
+  <div id="tokenBalanceContainer" class="mb-4 text-center text-slate-300" style="display: none;">
+    Your 5LV Balance: <span id="userTokenBalance" class="font-bold">--</span>
+  </div>
+
+  <div id="claimStreakContainer" class="mt-2 text-center text-slate-400 text-sm">
+    Current Streak: <span id="currentStreak" class="font-bold">0</span> days
+  </div>
+
   <button
     id="generateBtn"
     class="glow-on-hover bg-gradient-to-r from-purple-600 to-blue-500 text-white font-bold py-4 px-8 rounded-full text-xl shadow-lg hover:shadow-xl transition-all duration-300"
   >
     dai 5lv
   </button>
+
+  <div id="statusMessageContainer" class="mt-4 text-center text-slate-400 text-sm">
+    <!-- Status messages will appear here -->
+  </div>
 
   <div id="notesContainer"></div>
 
@@ -100,6 +112,37 @@
     const tokenAbi = [
       "function claim() public"
     ];
+    const tokenAbiBalanceOf = [
+      "function balanceOf(address account) view returns (uint256)"
+    ];
+
+    let statusTimeout; // To manage clearing of status messages
+
+    function updateStatus(message, isError = false, isSuccess = false, clearAfterDelay = true) {
+      const statusContainer = document.getElementById('statusMessageContainer');
+      if (!statusContainer) return;
+
+      clearTimeout(statusTimeout); // Clear any existing timeout
+
+      statusContainer.textContent = message;
+      statusContainer.classList.remove('text-red-400', 'text-green-400', 'text-slate-400');
+
+      if (isError) {
+        statusContainer.classList.add('text-red-400');
+      } else if (isSuccess) {
+        statusContainer.classList.add('text-green-400');
+      } else {
+        statusContainer.classList.add('text-slate-400'); // Default color
+      }
+
+      if (clearAfterDelay) {
+        statusTimeout = setTimeout(() => {
+          statusContainer.textContent = '';
+          statusContainer.classList.remove('text-red-400', 'text-green-400');
+          statusContainer.classList.add('text-slate-400'); 
+        }, 7000); // Clear after 7 seconds
+      }
+    }
 
     function showFallingNote() {
       const note = document.createElement('img');
@@ -126,18 +169,141 @@
       if (img) img.remove();
     }
 
+    async function updateUserBalance(provider, userAddress) {
+      const balanceContainer = document.getElementById('tokenBalanceContainer');
+      const balanceSpan = document.getElementById('userTokenBalance');
+      if (!balanceContainer || !balanceSpan) {
+        console.error("Balance display elements not found");
+        return;
+      }
+
+      try {
+        const balanceContract = new ethers.Contract(tokenAddress, tokenAbiBalanceOf, provider);
+        const rawBalance = await balanceContract.balanceOf(userAddress);
+        // Attempt to format with 2 decimal places for display, but ensure it's a string
+        const formattedBalance = parseFloat(ethers.utils.formatUnits(rawBalance, 18)).toFixed(2); 
+        balanceSpan.textContent = formattedBalance + " 5LV"; // Append token symbol
+        balanceContainer.style.display = 'block'; // Make it visible
+      } catch (error) {
+        console.error("Failed to fetch token balance:", error);
+        updateStatus("Could not fetch token balance.", true, false, true); // Show temporary error
+        // Optionally hide or show '--' if balance cannot be fetched
+        // balanceSpan.textContent = "--"; 
+        // balanceContainer.style.display = 'none'; // Or keep it visible with error
+      }
+    }
+
+    // Function to manage and display claim streak
+    // processNewClaim (boolean): true if called after a successful claim, false for display-only updates
+    function updateClaimStreak(processNewClaim) {
+      const streakSpan = document.getElementById('currentStreak');
+      if (!streakSpan) {
+        console.error("Streak display element not found");
+        return 0; // Should not happen
+      }
+
+      const today = new Date();
+      const todayString = today.toISOString().split('T')[0];
+      
+      const yesterday = new Date(today);
+      yesterday.setDate(today.getDate() - 1);
+      const yesterdayString = yesterday.toISOString().split('T')[0];
+
+      let lastClaimDate = localStorage.getItem('lastClaimDate');
+      let currentStreak = parseInt(localStorage.getItem('currentClaimStreak')) || 0;
+
+      if (processNewClaim) {
+        // Logic for processing a new successful claim
+        if (!lastClaimDate) { // First claim ever
+          currentStreak = 1;
+        } else if (lastClaimDate === todayString) {
+          // Already claimed today, streak doesn't change for this specific claim action
+          // (currentStreak remains as is, or if it was 0 it means it's the first claim of the day)
+          if (currentStreak === 0) currentStreak = 1; // Ensure streak is at least 1 if claimed today
+        } else if (lastClaimDate === yesterdayString) {
+          currentStreak++; // Claimed yesterday, increment streak
+        } else {
+          currentStreak = 1; // Last claim was before yesterday, reset streak
+        }
+        localStorage.setItem('lastClaimDate', todayString);
+        localStorage.setItem('currentClaimStreak', currentStreak.toString());
+      } else {
+        // Logic for displaying current streak status (not processing a new claim)
+        if (!lastClaimDate) { // Never claimed
+          currentStreak = 0;
+        } else if (lastClaimDate === todayString) {
+          // Already claimed today, display current streak
+          // currentStreak is already correct from localStorage
+        } else if (lastClaimDate === yesterdayString) {
+          // Last claim was yesterday. Display current streak (it will increment IF they claim today)
+          // currentStreak is already correct from localStorage
+        } else {
+          // Last claim was before yesterday, streak is broken.
+          currentStreak = 0; 
+        }
+      }
+      
+      streakSpan.textContent = currentStreak;
+      // The text " days" is already in the HTML, so just update the number.
+      // If not, use: streakSpan.textContent = currentStreak + " days";
+      return currentStreak;
+    }
+
+
     document.getElementById('generateBtn').addEventListener('click', async function () {
       showThinkingImage();
       document.body.style.cursor = 'wait';
+      updateStatus("Connecting to MetaMask...", false, false, false);
 
       try {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
-        await provider.send("eth_requestAccounts", []);
+        let accounts;
+        try {
+          accounts = await provider.send("eth_requestAccounts", []);
+        } catch (metamaskError) {
+          console.error("MetaMask connection error:", metamaskError);
+          let userMessage = "MetaMask connection failed. Please try again.";
+          if (metamaskError.code === 4001) { // EIP-1193 user rejected request
+            userMessage = "MetaMask connection rejected. Please allow connection to proceed.";
+          }
+          updateStatus(userMessage, true, false, false);
+          removeThinkingImage();
+          document.body.style.cursor = 'default';
+          return;
+        }
+        
         const signer = provider.getSigner();
-        const contract = new ethers.Contract(tokenAddress, tokenAbi, signer);
+        const userAddress = await signer.getAddress(); // Get user address for balance check
 
+        // Fetch and display balance right after connecting
+        await updateUserBalance(provider, userAddress); 
+        updateClaimStreak(false); // Display current streak status
+        
+        const contract = new ethers.Contract(tokenAddress, tokenAbi, signer); // For claim
+
+        updateStatus("Requesting signature to claim 5LV...", false, false, false);
         const tx = await contract.claim();
+        
+        updateStatus("Transaction submitted. Awaiting confirmation...", false, false, false);
+        // Basic Etherscan link for Sepolia (replace if network changes)
+        // const etherscanBaseUrl = "https://sepolia.etherscan.io/tx/";
+        // updateStatus(`Transaction submitted. View on Etherscan: ${etherscanBaseUrl}${tx.hash}`, false, false, false);
+        
         await tx.wait();
+
+        updateStatus("Transaction successful! 5LV tokens claimed.", false, true, true);
+        
+        // Refresh balance after successful claim
+        await updateUserBalance(provider, userAddress); 
+        const newStreak = updateClaimStreak(true); // Process successful claim and update streak
+
+        // Check for streak milestones immediately after updating the streak
+        if (newStreak === 3) {
+          updateStatus("🎉 3-Day Streak! Keep it up! 🎉", false, true, true);
+        } else if (newStreak === 7) { // Use 'else if' to avoid showing two messages if a 7-day message implies a 3-day one was also hit. Or just 'if' if they are independent. For now, 'else if' or separate 'if's are fine. Let's use separate 'if's for simplicity, in case other non-sequential milestones are added later.
+          updateStatus("🔥🔥 7-Day Streak! You're on fire! 🔥🔥", false, true, true);
+        }
+        // Add more milestone checks here if needed, e.g., 14-day, 30-day
 
         removeThinkingImage();
         document.body.style.cursor = 'default';
@@ -149,31 +315,48 @@
 
         // 🧠 Add token to MetaMask (only once per device)
         if (!localStorage.getItem('5lv-added')) {
-          await window.ethereum.request({
-            method: 'wallet_watchAsset',
-            params: {
-              type: 'ERC20',
-              options: {
-                address: tokenAddress,
-                symbol: '5LV',
-                decimals: 18,
-                image: 'https://markovaxn.github.io/lev4e-dapp/5bgnicon.jpeg'
+          try {
+            const wasAdded = await window.ethereum.request({
+              method: 'wallet_watchAsset',
+              params: {
+                type: 'ERC20',
+                options: {
+                  address: tokenAddress,
+                  symbol: '5LV',
+                  decimals: 18,
+                  image: 'https://markovaxn.github.io/lev4e-dapp/5bgnicon.jpeg'
+                },
               },
-            },
-          }).then((added) => {
-            if (added) {
+            });
+            if (wasAdded) {
               localStorage.setItem('5lv-added', 'true');
+              updateStatus("5LV token added to MetaMask!", false, false, true); // Brief success message
+            } else {
+              // User might have clicked "Cancel" or it failed for other reasons
+              console.warn("User did not add the token to MetaMask or an error occurred.");
             }
-          }).catch((err) => {
-            console.warn("Token add rejected", err);
-          });
+          } catch (watchError) {
+             console.warn("wallet_watchAsset failed or was rejected:", watchError);
+             // Avoid showing an error for this as it's non-critical.
+          }
         }
 
       } catch (err) {
-        console.error(err);
+        console.error("Transaction error:", err);
+        let errorMessage = "Transaction failed. Please try again.";
+        if (err.code === 4001) { // Standard EIP-1193 user rejected request
+          errorMessage = "Transaction rejected. You must approve the transaction in MetaMask.";
+        } else if (err.reason) {
+          errorMessage = `Transaction failed: ${err.reason}.`;
+        } else if (err.message) {
+          // Extract a cleaner message if possible, sometimes messages are very verbose
+          const shortMessage = err.message.split(' (')[0];
+          errorMessage = `Transaction failed: ${shortMessage}.`;
+        }
+        
+        updateStatus(errorMessage, true, false, false); // Keep error message
         removeThinkingImage();
         document.body.style.cursor = 'default';
-        alert("⚠️ Failed to claim 5LV. Check connection and contract.");
       }
     });
   </script>
