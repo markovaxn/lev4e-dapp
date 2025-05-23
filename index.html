@@ -7,6 +7,24 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <style>
+    :root {
+      --bg-color-dark: #0f172a;
+      --text-color-dark: #f8fafc;
+      --container-bg-dark: rgba(30, 41, 59, 0.8); /* Example for radial gradient part */
+      --container-bg-dark-solid: #1e293b; /* For solid backgrounds like achievements */
+      --text-muted-dark: #94a3b8; /* slate-400 */
+      --text-accent-dark: #cbd5e1; /* slate-300 */
+      --border-color-dark: #334155; /* slate-700 */
+
+      --bg-color-light: #f3f4f6; /* gray-100 */
+      --text-color-light: #1f2937; /* gray-800 */
+      --container-bg-light: rgba(229, 231, 235, 0.8); /* gray-200 with opacity */
+      --container-bg-light-solid: #e5e7eb; /* gray-200 */
+      --text-muted-light: #4b5563; /* gray-600 */
+      --text-accent-light: #374151; /* gray-700 */
+      --border-color-light: #d1d5db; /* gray-300 */
+    }
+
     @keyframes fall {
       0% {
         transform: translateY(0) rotate(0deg);
@@ -51,16 +69,17 @@
     }
 
     body {
-      overflow: hidden;
-      background-color: #0f172a;
-      color: #f8fafc;
-      background-image:
-        radial-gradient(circle at 10% 20%, rgba(30, 41, 59, 0.8) 0%, transparent 20%),
-        radial-gradient(circle at 90% 80%, rgba(30, 41, 59, 0.8) 0%, transparent 20%),
-        linear-gradient(to bottom, transparent 95%, rgba(148, 163, 184, 0.05) 95%);
-      background-size: 200% 200%, 200% 200%, 100% 20px;
+      overflow-x: hidden; /* Allow vertical scroll for content, hide horizontal */
+      overflow-y: auto;
+      background-color: var(--bg-color-dark);
+      color: var(--text-color-dark);
+      /* Background images are complex to theme with CSS vars directly, might need JS or multiple body classes */
     }
-
+     body.light-mode {
+      background-color: var(--bg-color-light);
+      color: var(--text-color-light);
+    }
+    /* Attempt to theme grid pattern - might be tricky with CSS vars only */
     .grid-pattern {
       position: fixed;
       top: 0;
@@ -73,41 +92,448 @@
       background-size: 40px 40px;
       z-index: -1;
     }
+    body.light-mode .grid-pattern {
+       background-image:
+        linear-gradient(rgba(55, 65, 81, 0.04) 1px, transparent 1px), /* gray-700 with low alpha */
+        linear-gradient(90deg, rgba(55, 65, 81, 0.04) 1px, transparent 1px);
+    }
+
+    /* General text color updates */
+    .text-main { color: var(--text-color-dark); }
+    body.light-mode .text-main { color: var(--text-color-light); }
+
+    .text-muted { color: var(--text-muted-dark); }
+    body.light-mode .text-muted { color: var(--text-muted-light); }
+    
+    .text-accent { color: var(--text-accent-dark); }
+    body.light-mode .text-accent { color: var(--text-accent-light); }
+
+    /* Container backgrounds */
+    .container-bg { background-color: var(--container-bg-dark-solid); } /* Default for solid containers */
+    body.light-mode .container-bg { background-color: var(--container-bg-light-solid); }
+
+    /* Specific element theming */
+    body.light-mode #tokenBalanceContainer,
+    body.light-mode #claimStreakContainer,
+    body.light-mode #rewardTierContainer,
+    body.light-mode #statusMessageContainer {
+      color: var(--text-muted-light);
+    }
+    body.light-mode #tokenBalanceContainer .font-bold,
+    body.light-mode #claimStreakContainer .font-bold {
+      color: var(--text-accent-light);
+    }
+    
+    /* Tier specific colors - these are fine as they are semantic */
+    body.light-mode .text-orange-400 { color: #fb923c; } /* Maintain orange for bronze */
+    body.light-mode .text-gray-300 { color: #9ca3af; } /* Lighten silver for light mode if needed, or keep */
+    body.light-mode .text-yellow-400 { color: #facc15; } /* Maintain gold for gold */
+
+
+    /* Achievements */
+    body.light-mode #achievementsDisplayArea h3 { color: var(--text-color-light); }
+    body.light-mode #achievementsDisplayArea p { color: var(--text-muted-light); }
+    body.light-mode #achievementsDisplayArea .bg-slate-700\/50 {
+      background-color: var(--container-bg-light-solid);
+      border: 1px solid var(--border-color-light);
+    }
+    body.light-mode #achievementsDisplayArea .font-bold { color: var(--text-accent-light); }
+    body.light-mode #achievementsDisplayArea .text-slate-300 { color: var(--text-muted-light); } /* description */
+    body.light-mode #achievementsDisplayArea .text-slate-500 { color: #6b7280; } /* unlocked date */
+
+
+    /* Leaderboard */
+    body.light-mode #leaderboardContainer .italic { color: #6b7280; } /* gray-500 */
+    body.light-mode #leaderboardContainer h3 { color: var(--text-color-light); }
+    body.light-mode #leaderboardContainer .bg-slate-700\/30 {
+      background-color: var(--container-bg-light-solid);
+      border: 1px solid var(--border-color-light);
+    }
+    body.light-mode #leaderboardContainer .bg-slate-600\/30 { /* Non-user entry */
+        background-color: #e5e7eb; /* gray-200 */
+    }
+    body.light-mode #leaderboardContainer .text-slate-200 { color: var(--text-accent-light); }
+    body.light-mode #leaderboardContainer .text-slate-300 { color: var(--text-muted-light); }
+    
+    /* Highlight for current user in leaderboard - adjust purple for light mode if needed */
+    body.light-mode #leaderboardContainer .bg-purple-600\/50 { background-color: rgba(168, 85, 247, 0.3); } /* Lighter purple */
+    body.light-mode #leaderboardContainer .text-purple-300 { color: #a855f7; } /* Brighter purple for text */
+
+    /* Footer */
+    body.light-mode footer { color: var(--text-muted-light); }
+
+    /* Theme toggle button */
+    #themeToggleBtn {
+      background-color: var(--container-bg-dark-solid);
+      color: var(--text-accent-dark);
+      border: 1px solid var(--border-color-dark);
+    }
+    body.light-mode #themeToggleBtn {
+      background-color: var(--container-bg-light-solid);
+      color: var(--text-accent-light);
+      border: 1px solid var(--border-color-light);
+    }
+
+    /* Tooltip Styles */
+    .tooltip-container {
+      position: relative;
+      display: inline-block;
+    }
+    .info-icon {
+      cursor: help;
+      font-style: normal; /* Ensure emoji isn't italic if parent is */
+      margin-left: 4px; /* Space from the text */
+      font-size: 0.9em; /* Slightly smaller than parent text */
+      vertical-align: middle;
+    }
+    .tooltip-text {
+      display: none;
+      position: absolute;
+      bottom: 100%; /* Position above the icon */
+      left: 50%;
+      transform: translateX(-50%);
+      margin-bottom: 5px; /* Space from the icon */
+      
+      background-color: var(--container-bg-dark-solid);
+      color: var(--text-color-dark);
+      border: 1px solid var(--border-color-dark);
+      
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.875rem; /* text-sm */
+      width: max-content;
+      max-width: 250px; /* Adjust as needed */
+      text-align: left;
+      z-index: 50; /* Ensure it's above other elements */
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .tooltip-container:hover .tooltip-text,
+    .tooltip-container:focus-within .tooltip-text { /* Show on focus for accessibility */
+      display: block;
+    }
+    /* Light mode tooltip styles */
+    body.light-mode .tooltip-text {
+      background-color: var(--container-bg-light-solid);
+      color: var(--text-color-light);
+      border: 1px solid var(--border-color-light);
+    }
+     /* Allow info icon to be focusable for keyboard users */
+    .info-icon {
+        display: inline-block; /* Needed for focus outline to appear correctly */
+        outline: none; /* Remove default outline, rely on hover/focus-within for tooltip */
+    }
+    .tooltip-container:focus-within .info-icon {
+        /* Optional: add a visual cue for focus on the icon itself if desired */
+        /* Example: box-shadow: 0 0 0 2px var(--text-accent-dark); */
+    }
+
+
   </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center font-mono">
+<body class="min-h-screen flex flex-col items-center justify-center font-mono pt-10 pb-20">
   <div class="grid-pattern"></div>
 
-  <div class="text-center mb-8">
+  <div class="text-center mb-8 text-main">
     <h1 class="text-5xl font-bold mb-2 tracking-tighter">lev4e</h1>
   </div>
-
-  <div id="tokenBalanceContainer" class="mb-4 text-center text-slate-300" style="display: none;">
-    Your 5LV Balance: <span id="userTokenBalance" class="font-bold">--</span>
   </div>
 
-  <div id="claimStreakContainer" class="mt-2 text-center text-slate-400 text-sm">
-    Current Streak: <span id="currentStreak" class="font-bold">0</span> days
+  <div id="tokenBalanceContainer" class="mb-4 text-center text-muted" style="display: none;">
+    Your 5LV Balance: <span id="userTokenBalance" class="font-bold text-accent">--</span>
+    <span class="tooltip-container">
+      <span class="info-icon" tabindex="0">ℹ️</span>
+      <span class="tooltip-text">This is your current balance of 5LV tokens on the Sepolia test network.</span>
+    </span>
+  </div>
+
+  <div id="claimStreakContainer" class="mt-2 text-center text-muted text-sm">
+    Current Streak: <span id="currentStreak" class="font-bold text-accent">0</span> days
+    <span class="tooltip-container">
+      <span class="info-icon" tabindex="0">ℹ️</span>
+      <span class="tooltip-text">Claim 5LV tokens on consecutive days to increase your streak. Higher streaks unlock better reward tiers!</span>
+    </span>
+  </div>
+
+  <div id="rewardTierContainer" class="mt-2 text-center text-sm text-muted">
+    <!-- Reward tier will be displayed here, specific tier colors handled by JS -->
+    <span class="tooltip-container">
+      <span class="info-icon" tabindex="0">ℹ️</span>
+      <span class="tooltip-text">Your Reward Tier (e.g., Bronze, Silver, Gold) is based on your current claim streak. This is a UI bonus display.</span>
+    </span>
   </div>
 
   <button
     id="generateBtn"
-    class="glow-on-hover bg-gradient-to-r from-purple-600 to-blue-500 text-white font-bold py-4 px-8 rounded-full text-xl shadow-lg hover:shadow-xl transition-all duration-300"
+    class="glow-on-hover bg-gradient-to-r from-purple-600 to-blue-500 text-white font-bold py-4 px-8 rounded-full text-xl shadow-lg hover:shadow-xl transition-all duration-300 relative"
   >
     dai 5lv
+    <span class="tooltip-container absolute -right-1 -top-1">
+        <span class="info-icon text-xs bg-slate-800/70 text-white rounded-full px-1.5 py-0.5" tabindex="0">?</span>
+        <span class="tooltip-text">Click here to claim your daily 5LV tokens! Connect your MetaMask wallet first.</span>
+    </span>
   </button>
 
-  <div id="statusMessageContainer" class="mt-4 text-center text-slate-400 text-sm">
-    <!-- Status messages will appear here -->
+  <div id="statusMessageContainer" class="mt-4 text-center text-muted text-sm">
+    <!-- Status messages will appear here, error/success colors handled by JS -->
+    <!-- Tooltip for Daily Claim Limit - added near where the message appears -->
+     <span class="tooltip-container">
+        <span class="info-icon" tabindex="0">ℹ️</span>
+        <span class="tooltip-text">You can claim up to 5 times per day. The limit resets daily at midnight UTC.</span>
+    </span>
   </div>
 
   <div id="notesContainer"></div>
 
-  <footer class="absolute bottom-4 text-gray-500 text-sm">
+  <div id="achievementsDisplayArea" class="mt-8 w-full max-w-md px-4 text-center container-bg rounded-lg py-4">
+    <!-- Achievements will be displayed here, heading updated below -->
+  </div>
+
+  <div id="leaderboardContainer" class="mt-8 mb-16 w-full max-w-lg px-4 text-center">
+    <p class="text-xs text-muted mb-4 italic">
+      Leaderboard Demo
+      <span class="tooltip-container">
+        <span class="info-icon" tabindex="0">ℹ️</span>
+        <span class="tooltip-text">This leaderboard is for demonstration purposes only. Data is mocked and stored locally in your browser.</span>
+      </span>
+    </p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <h3 class="text-xl font-semibold text-main mb-3">🏆 Top 5LV Balances</h3>
+        <div id="topBalancesLeaderboard" class="container-bg p-4 rounded-lg shadow">
+          <!-- Top balances will be rendered here -->
+        </div>
+      </div>
+      <div>
+        <h3 class="text-xl font-semibold text-main mb-3">🔥 Longest Claim Streaks</h3>
+        <div id="longestStreaksLeaderboard" class="container-bg p-4 rounded-lg shadow">
+          <!-- Longest streaks will be rendered here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="transactionHistoryContainer" class="mt-8 mb-16 w-full max-w-lg px-4 text-center">
+    <!-- Transaction history will be rendered here, heading updated by JS -->
+  </div>
+  
+  <div class="fixed bottom-4 right-4 flex space-x-2">
+    <button id="muteToggleBtn" class="px-3 py-2 rounded-lg shadow-md glow-on-hover font-semibold text-sm">
+      <!-- Text updated by JS -->
+    </button>
+    <button id="themeToggleBtn" class="px-3 py-2 rounded-lg shadow-md glow-on-hover font-semibold text-sm">
+      Toggle Theme
+    </button>
+  </div>
+
+  <footer class="pb-4 text-center text-muted text-sm">
     © 2025 lev4e
   </footer>
 
   <script>
+    let currentUserAddress; // Store user address globally for leaderboard highlighting
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const muteToggleBtn = document.getElementById('muteToggleBtn');
+    const MAX_HISTORY_LENGTH = 5; // Max number of transactions to store
+    
+    let audioContext;
+    let soundsMuted = false;
+
+    // Initialize AudioContext on first user gesture (e.g., first button click)
+    function initAudioContext() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+    }
+
+    function playSound(soundType) {
+      if (soundsMuted || !audioContext) return;
+      
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime); // Keep volume low
+
+      switch (soundType) {
+        case 'button_click':
+          oscillator.type = 'sine';
+          oscillator.frequency.setValueAtTime(200, audioContext.currentTime); // Low pitch
+          gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.1);
+          oscillator.start(audioContext.currentTime);
+          oscillator.stop(audioContext.currentTime + 0.1);
+          break;
+        case 'claim_success':
+          oscillator.type = 'triangle';
+          oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A4
+          gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.3);
+          oscillator.start(audioContext.currentTime);
+          oscillator.stop(audioContext.currentTime + 0.3);
+          break;
+        case 'achievement_unlocked':
+          oscillator.type = 'square';
+          oscillator.frequency.setValueAtTime(660, audioContext.currentTime); // E5
+          gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.2);
+          oscillator.start(audioContext.currentTime);
+          oscillator.stop(audioContext.currentTime + 0.2);
+          // Quick second tone
+          setTimeout(() => {
+            if (soundsMuted || !audioContext) return;
+            const osc2 = audioContext.createOscillator();
+            const gain2 = audioContext.createGain();
+            osc2.connect(gain2);
+            gain2.connect(audioContext.destination);
+            gain2.gain.setValueAtTime(0.08, audioContext.currentTime);
+            osc2.type = 'square';
+            osc2.frequency.setValueAtTime(880, audioContext.currentTime); // A5
+            gain2.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.15);
+            osc2.start(audioContext.currentTime);
+            osc2.stop(audioContext.currentTime + 0.15);
+          }, 100);
+          break;
+        case 'error':
+          oscillator.type = 'sawtooth';
+          oscillator.frequency.setValueAtTime(150, audioContext.currentTime); // Low, dissonant-ish
+          gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.4);
+          oscillator.start(audioContext.currentTime);
+          oscillator.stop(audioContext.currentTime + 0.4);
+          break;
+      }
+    }
+
+    function applyInitialSoundPreference() {
+      const savedSoundPreference = localStorage.getItem('soundPreference');
+      soundsMuted = savedSoundPreference === 'muted';
+      muteToggleBtn.textContent = soundsMuted ? 'Unmute Sounds 🔊' : 'Mute Sounds 🔇';
+      // Also apply theme-specific styles to mute button here if needed
+      const isLightMode = document.body.classList.contains('light-mode');
+       muteToggleBtn.style.backgroundColor = isLightMode ? 'var(--container-bg-light-solid)' : 'var(--container-bg-dark-solid)';
+       muteToggleBtn.style.color = isLightMode ? 'var(--text-accent-light)' : 'var(--text-accent-dark)';
+       muteToggleBtn.style.borderColor = isLightMode ? 'var(--border-color-light)' : 'var(--border-color-dark)';
+    }
+
+    function toggleMute() {
+      initAudioContext(); // Ensure context is active before unmuting
+      soundsMuted = !soundsMuted;
+      localStorage.setItem('soundPreference', soundsMuted ? 'muted' : 'unmuted');
+      muteToggleBtn.textContent = soundsMuted ? 'Unmute Sounds 🔊' : 'Mute Sounds 🔇';
+    }
+    
+    muteToggleBtn.addEventListener('click', toggleMute);
+
+
+    function applyInitialTheme() {
+      const savedTheme = localStorage.getItem('themePreference');
+      if (savedTheme === 'light') {
+        document.body.classList.add('light-mode');
+        themeToggleBtn.textContent = 'Switch to Dark Mode 🌙';
+      } else {
+        document.body.classList.remove('light-mode'); // Default is dark
+        themeToggleBtn.textContent = 'Switch to Light Mode ☀️';
+      }
+      // Update mute button style with theme
+      applyInitialSoundPreference(); 
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle('light-mode');
+      const isLightMode = document.body.classList.contains('light-mode');
+      if (isLightMode) {
+        localStorage.setItem('themePreference', 'light');
+        themeToggleBtn.textContent = 'Switch to Dark Mode 🌙';
+      } else {
+        localStorage.setItem('themePreference', 'dark');
+        themeToggleBtn.textContent = 'Switch to Light Mode ☀️';
+      }
+      // Update mute button style with new theme
+       muteToggleBtn.style.backgroundColor = isLightMode ? 'var(--container-bg-light-solid)' : 'var(--container-bg-dark-solid)';
+       muteToggleBtn.style.color = isLightMode ? 'var(--text-accent-light)' : 'var(--text-accent-dark)';
+       muteToggleBtn.style.borderColor = isLightMode ? 'var(--border-color-light)' : 'var(--border-color-dark)';
+    }
+
+    themeToggleBtn.addEventListener('click', toggleTheme);
+    document.addEventListener('DOMContentLoaded', () => {
+        applyInitialTheme();
+        applyInitialSoundPreference(); // Apply sound pref after theme so button styles are correct
+        renderTransactionHistory(); // Render history on initial load
+    });
+
+    // --- Transaction History Functions ---
+    function addTransactionToHistory(hash, amount) {
+      let history = [];
+      try {
+        history = JSON.parse(localStorage.getItem('userClaimHistory')) || [];
+      } catch (e) {
+        console.error("Error parsing userClaimHistory from localStorage:", e);
+        history = []; // Reset to empty array on error
+      }
+
+      const newEntry = { hash, timestamp: Date.now(), amount };
+      history.unshift(newEntry); // Add to the beginning
+
+      if (history.length > MAX_HISTORY_LENGTH) {
+        history.pop(); // Remove the oldest entry
+      }
+
+      localStorage.setItem('userClaimHistory', JSON.stringify(history));
+    }
+
+    function renderTransactionHistory() {
+      const historyContainer = document.getElementById('transactionHistoryContainer');
+      if (!historyContainer) return;
+
+      let history = [];
+      try {
+        history = JSON.parse(localStorage.getItem('userClaimHistory')) || [];
+      } catch (e) {
+        console.error("Error parsing userClaimHistory from localStorage:", e);
+        history = [];
+      }
+      
+      let html = `<h3 class="text-xl font-semibold text-main mb-3">Recent Claims 📜</h3>`;
+      if (history.length === 0) {
+        html += `<p class="text-muted text-sm">No claim history yet.</p>`;
+      } else {
+        html += `<ul class="space-y-3 text-left container-bg p-4 rounded-lg shadow">`;
+        history.forEach(tx => {
+          const date = new Date(tx.timestamp);
+          const formattedDate = date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+          const formattedTime = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+          html += `
+            <li class="p-3 bg-slate-600/30 dark:bg-opacity-30 light:bg-gray-200/50 rounded-md shadow-sm">
+              <div class="flex justify-between items-center mb-1">
+                <span class="font-semibold text-accent text-sm">Claimed: ${tx.amount} 5LV</span>
+                <span class="text-xs text-muted">${formattedDate} at ${formattedTime}</span>
+              </div>
+              <a href="https://sepolia.etherscan.io/tx/${tx.hash}" target="_blank" rel="noopener noreferrer" 
+                 class="text-purple-400 hover:text-purple-300 light:text-indigo-600 light:hover:text-indigo-400 text-xs break-all">
+                View on Etherscan: ${tx.hash.substring(0,10)}...${tx.hash.substring(tx.hash.length - 8)}
+              </a>
+            </li>
+          `;
+        });
+        html += `</ul>`;
+      }
+      historyContainer.innerHTML = html;
+      // Apply light/dark mode styles to newly rendered history items
+      const isLightMode = document.body.classList.contains('light-mode');
+      historyContainer.querySelectorAll('li').forEach(li => {
+        if (isLightMode) {
+            li.classList.remove('bg-slate-600/30');
+            li.classList.add('bg-gray-200/50', 'border', 'border-gray-300'); // Example light mode style
+        } else {
+            li.classList.remove('bg-gray-200/50', 'border', 'border-gray-300');
+            li.classList.add('bg-slate-600/30');
+        }
+      });
+       historyContainer.querySelector('h3')?.classList.toggle('text-main', true); // Ensure heading matches theme
+       historyContainer.querySelector('p')?.classList.toggle('text-muted', true); // Ensure "no history" matches theme
+
+    }
+
+
     const tokenAddress = '0x1DB8096DEC8B0e30eA4435d38960d7f3B644923b'; // 🔁 Replace this with your real deployed contract address
     const tokenAbi = [
       "function claim() public"
@@ -116,7 +542,254 @@
       "function balanceOf(address account) view returns (uint256)"
     ];
 
+    const DAILY_CLAIM_LIMIT = 5;
     let statusTimeout; // To manage clearing of status messages
+
+    // --- Mock Leaderboard Data ---
+    const mockBalanceUsers = [
+      { username: "UserAlpha", balance: 10500.75, isMock: true },
+      { username: "TokenWhale", balance: 8200.50, isMock: true },
+      { username: "5LVFanatic", balance: 7800.00, isMock: true },
+      { username: "EarlyBird", balance: 6100.25, isMock: true },
+    ];
+
+    const mockStreakUsers = [
+      { username: "StreakKing", streak: 25, isMock: true },
+      { username: "ConsistentClaimer", streak: 18, isMock: true },
+      { username: "DailyDevotee", streak: 12, isMock: true },
+    ];
+
+    async function renderLeaderboard(provider) {
+      const topBalancesDiv = document.getElementById('topBalancesLeaderboard');
+      const longestStreaksDiv = document.getElementById('longestStreaksLeaderboard');
+
+      if (!topBalancesDiv || !longestStreaksDiv || !currentUserAddress) {
+        topBalancesDiv.innerHTML = '<p class="text-slate-400 text-sm">Leaderboard data unavailable.</p>';
+        longestStreaksDiv.innerHTML = '<p class="text-slate-400 text-sm">Leaderboard data unavailable.</p>';
+        return;
+      }
+
+      // --- Top Balances ---
+      let userBalance = 0;
+      try {
+        const balanceContract = new ethers.Contract(tokenAddress, tokenAbiBalanceOf, provider);
+        const rawBalance = await balanceContract.balanceOf(currentUserAddress);
+        userBalance = parseFloat(ethers.utils.formatUnits(rawBalance, 18));
+      } catch (error) {
+        console.error("Failed to fetch user balance for leaderboard:", error);
+        // Keep userBalance as 0 or handle error display
+      }
+      
+      const currentUserBalanceEntry = { username: `${currentUserAddress.substring(0, 6)}...${currentUserAddress.substring(currentUserAddress.length - 4)} (You)`, balance: userBalance, isCurrentUser: true };
+      
+      const allBalances = [...mockBalanceUsers.map(u => ({...u})), currentUserBalanceEntry]; // Clone mock users
+      allBalances.sort((a, b) => b.balance - a.balance);
+      const top5Balances = allBalances.slice(0, 5);
+
+      let balancesHtml = '<ul class="space-y-2 text-left">';
+      top5Balances.forEach((entry, index) => {
+        balancesHtml += `
+          <li class="p-2 rounded ${entry.isCurrentUser ? 'bg-purple-600/50' : 'bg-slate-600/30'} flex justify-between items-center">
+            <span class="font-semibold ${entry.isCurrentUser ? 'text-purple-300' : 'text-slate-200'}">${index + 1}. ${entry.username}</span>
+            <span class="text-sm ${entry.isCurrentUser ? 'text-purple-300' : 'text-slate-300'}">${entry.balance.toFixed(2)} 5LV</span>
+          </li>
+        `;
+      });
+      balancesHtml += '</ul>';
+      topBalancesDiv.innerHTML = balancesHtml;
+
+      // --- Longest Streaks ---
+      const userStreak = parseInt(localStorage.getItem('currentClaimStreak')) || 0;
+      const currentUserStreakEntry = { username: `${currentUserAddress.substring(0, 6)}...${currentUserAddress.substring(currentUserAddress.length - 4)} (You)`, streak: userStreak, isCurrentUser: true };
+
+      const allStreaks = [...mockStreakUsers.map(u => ({...u})), currentUserStreakEntry]; // Clone mock users
+      allStreaks.sort((a, b) => b.streak - a.streak);
+      const top5Streaks = allStreaks.slice(0, 5);
+
+      let streaksHtml = '<ul class="space-y-2 text-left">';
+      top5Streaks.forEach((entry, index) => {
+        streaksHtml += `
+          <li class="p-2 rounded ${entry.isCurrentUser ? 'bg-purple-600/50' : 'bg-slate-600/30'} flex justify-between items-center">
+            <span class="font-semibold ${entry.isCurrentUser ? 'text-purple-300' : 'text-slate-200'}">${index + 1}. ${entry.username}</span>
+            <span class="text-sm ${entry.isCurrentUser ? 'text-purple-300' : 'text-slate-300'}">${entry.streak} days</span>
+          </li>
+        `;
+      });
+      streaksHtml += '</ul>';
+      longestStreaksDiv.innerHTML = streaksHtml;
+    }
+
+
+    // --- Achievements System ---
+    const achievementsList = {
+      first_claim: {
+        name: "Welcome Aboard!",
+        description: "Successfully claimed 5LV for the first time.",
+        emoji: "🎉",
+        criteria: () => (parseInt(localStorage.getItem('totalUserClaims')) || 0) === 1,
+      },
+      streak_3: {
+        name: "Rising Star!",
+        description: "Achieved a 3-day claim streak.",
+        emoji: "🌟",
+        criteria: () => (parseInt(localStorage.getItem('currentClaimStreak')) || 0) >= 3,
+      },
+      streak_7: {
+        name: "Streak Master!",
+        description: "Achieved a 7-day claim streak.",
+        emoji: "🔥",
+        criteria: () => (parseInt(localStorage.getItem('currentClaimStreak')) || 0) >= 7,
+      },
+      claims_total_10: {
+        name: "Collector",
+        description: "Claimed 5LV a total of 10 times.",
+        emoji: "💰",
+        criteria: () => (parseInt(localStorage.getItem('totalUserClaims')) || 0) >= 10,
+      },
+      claims_total_50: {
+        name: "Super Collector",
+        description: "Claimed 5LV a total of 50 times.",
+        emoji: "💎",
+        criteria: () => (parseInt(localStorage.getItem('totalUserClaims')) || 0) >= 50,
+      },
+      claims_in_day_3: {
+        name: "Daily Enthusiast",
+        description: "Claimed 3 times in a single day.",
+        emoji: "💨",
+        criteria: () => {
+          const dailyData = JSON.parse(localStorage.getItem('dailyClaimsData')) || { count: 0 };
+          return dailyData.count >= 3;
+        },
+      },
+      claims_in_day_5: {
+        name: "Daily Max Out!",
+        description: "Reached the daily claim limit of 5.",
+        emoji: "💯",
+        criteria: () => {
+          const dailyData = JSON.parse(localStorage.getItem('dailyClaimsData')) || { count: 0 };
+          return dailyData.count >= DAILY_CLAIM_LIMIT;
+        },
+      },
+      perfect_week_start: {
+        name: "Perfect Week Starter",
+        description: "Achieved a 7-day streak AND claimed 5 times on that 7th day.",
+        emoji: "🚀",
+        criteria: () => {
+            const streak = parseInt(localStorage.getItem('currentClaimStreak')) || 0;
+            const dailyData = JSON.parse(localStorage.getItem('dailyClaimsData')) || { count: 0 };
+            // This checks if current streak is 7 (or more) AND today they hit the limit.
+            // It implies they are *currently* on the 7th day (or more) of the streak.
+            return streak >= 7 && dailyData.count >= DAILY_CLAIM_LIMIT;
+        }
+      }
+    };
+
+    function renderAchievements() {
+      const displayArea = document.getElementById('achievementsDisplayArea');
+      const userAchievements = JSON.parse(localStorage.getItem('userAchievements')) || {};
+
+      if (!displayArea) return;
+
+      const unlockedAchievements = Object.keys(userAchievements);
+
+      if (unlockedAchievements.length === 0) {
+      let achievementsHeading = `
+        <h3 class="text-xl font-semibold text-main mb-3">
+          Your Achievements 🏆
+          <span class="tooltip-container">
+            <span class="info-icon" tabindex="0">ℹ️</span>
+            <span class="tooltip-text">Unlock achievements by reaching milestones like claim streaks or total claims!</span>
+          </span>
+        </h3>`;
+
+      if (unlockedAchievements.length === 0) {
+        displayArea.innerHTML = achievementsHeading + `<p class="text-muted">No achievements unlocked yet. Keep claiming!</p>`;
+        return;
+      }
+
+      let html = achievementsHeading + '<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">';
+      for (const id of unlockedAchievements) {
+        const achievement = achievementsList[id];
+        if (achievement) {
+          html += `
+            <div class="bg-slate-700/50 p-4 rounded-lg shadow text-left">
+              <span class="text-2xl mr-2">${achievement.emoji}</span>
+              <span class="font-bold text-slate-100">${achievement.name}</span>
+              <p class="text-sm text-slate-300 mt-1">${achievement.description}</p>
+              <p class="text-xs text-slate-500 mt-1">Unlocked: ${new Date(userAchievements[id]).toLocaleDateString()}</p>
+            </div>
+          `;
+        }
+      }
+      html += '</div>';
+      displayArea.innerHTML = html;
+    }
+
+    function checkAndAwardAchievements() {
+      let userAchievements = JSON.parse(localStorage.getItem('userAchievements')) || {};
+      let newAchievementAwarded = false;
+
+      for (const id in achievementsList) {
+        if (!userAchievements[id] && achievementsList[id].criteria()) {
+          userAchievements[id] = Date.now();
+          updateStatus(`🏆 Achievement Unlocked: ${achievementsList[id].name}`, false, true, true);
+          playSound('achievement_unlocked');
+          newAchievementAwarded = true;
+        }
+      }
+
+      if (newAchievementAwarded) {
+        localStorage.setItem('userAchievements', JSON.stringify(userAchievements));
+        renderAchievements();
+      }
+    }
+    
+    function incrementTotalUserClaims() {
+        let totalClaims = parseInt(localStorage.getItem('totalUserClaims')) || 0;
+        totalClaims++;
+        localStorage.setItem('totalUserClaims', totalClaims.toString());
+    }
+
+
+    // Function to check, enforce, and update daily claim limit
+    function checkAndEnforceDailyClaimLimit() {
+      const generateBtn = document.getElementById('generateBtn');
+      const today = new Date().toISOString().split('T')[0];
+      let dailyClaimsData = JSON.parse(localStorage.getItem('dailyClaimsData')) || { date: today, count: 0 };
+
+      if (dailyClaimsData.date !== today) {
+        dailyClaimsData.date = today;
+        dailyClaimsData.count = 0;
+        localStorage.setItem('dailyClaimsData', JSON.stringify(dailyClaimsData));
+      }
+
+      if (dailyClaimsData.count >= DAILY_CLAIM_LIMIT) {
+        generateBtn.disabled = true;
+        updateStatus(`You have reached your daily claim limit (${DAILY_CLAIM_LIMIT} claims). Please try again tomorrow.`, false, false, false); // Persisting message
+        return true; // Limit reached
+      } else {
+        generateBtn.disabled = false;
+        // Clear any persistent limit message if the limit is not reached
+        // This assumes updateStatus will clear if no new message is set or if a temporary message is set later
+        // updateStatus('', false, false, true); // Optionally clear status if button is re-enabled
+        return false; // Limit not reached
+      }
+    }
+
+    function incrementDailyClaimCount() {
+      const today = new Date().toISOString().split('T')[0];
+      let dailyClaimsData = JSON.parse(localStorage.getItem('dailyClaimsData')) || { date: today, count: 0 };
+      
+      if (dailyClaimsData.date === today) {
+        dailyClaimsData.count++;
+      } else {
+        // This case should ideally be handled by checkAndEnforceDailyClaimLimit on page load/before claim
+        // but as a safeguard:
+        dailyClaimsData.date = today;
+        dailyClaimsData.count = 1;
+      }
+      localStorage.setItem('dailyClaimsData', JSON.stringify(dailyClaimsData));
+    }
 
     function updateStatus(message, isError = false, isSuccess = false, clearAfterDelay = true) {
       const statusContainer = document.getElementById('statusMessageContainer');
@@ -129,8 +802,10 @@
 
       if (isError) {
         statusContainer.classList.add('text-red-400');
+        playSound('error');
       } else if (isSuccess) {
         statusContainer.classList.add('text-green-400');
+        // Note: claim_success sound is played directly after tx.wait(), achievement sound in checkAndAwardAchievements()
       } else {
         statusContainer.classList.add('text-slate-400'); // Default color
       }
@@ -193,13 +868,15 @@
       }
     }
 
-    // Function to manage and display claim streak
+    // Function to manage and display claim streak and reward tier
     // processNewClaim (boolean): true if called after a successful claim, false for display-only updates
     function updateClaimStreak(processNewClaim) {
       const streakSpan = document.getElementById('currentStreak');
-      if (!streakSpan) {
-        console.error("Streak display element not found");
-        return 0; // Should not happen
+      const tierContainer = document.getElementById('rewardTierContainer');
+
+      if (!streakSpan || !tierContainer) {
+        console.error("Streak or Tier display element not found");
+        return 0; 
       }
 
       const today = new Date();
@@ -244,13 +921,56 @@
       }
       
       streakSpan.textContent = currentStreak;
-      // The text " days" is already in the HTML, so just update the number.
-      // If not, use: streakSpan.textContent = currentStreak + " days";
+
+      // Determine and display reward tier
+      let tierName = "No Tier";
+      let tierMessage = "Start claiming to enter a reward tier!";
+      let tierColor = "text-slate-400"; // Default color
+
+      if (currentStreak >= 1 && currentStreak <= 2) {
+        tierName = "Bronze Tier 🥉";
+        tierMessage = "You're earning standard rewards. Keep the streak going!";
+        tierColor = "text-orange-400";
+      } else if (currentStreak >= 3 && currentStreak <= 6) {
+        tierName = "Silver Tier 🥈";
+        tierMessage = "Nice! You've unlocked Silver Tier UI bonus display!";
+        tierColor = "text-gray-300"; // Silver-like
+      } else if (currentStreak >= 7) {
+        tierName = "Gold Tier 🥇";
+        tierMessage = "Amazing! Gold Tier UI bonus display active! Max engagement rewards!";
+        tierColor = "text-yellow-400"; // Gold-like
+      }
+
+      if (currentStreak === 0) {
+        tierContainer.innerHTML = `<span class="${tierColor}">${tierMessage}</span>`;
+      } else {
+        tierContainer.innerHTML = `Reward Tier: <span class="font-bold ${tierColor}">${tierName}</span> <br class="sm:hidden"><span class="${tierColor_message_style}">${tierMessage}</span>`;
+      }
+      // Ensure tierMessage style is defined or use a sensible default
+      const tierMessageStyle = tierColor === "text-slate-400" ? "text-slate-500" : tierColor; // Example: darken slightly or use same color
+      if (currentStreak === 0) {
+        tierContainer.innerHTML = `<span class="${tierMessageStyle}">${tierMessage}</span>`;
+      } else {
+        tierContainer.innerHTML = `Reward Tier: <span class="font-bold ${tierColor}">${tierName}</span> <br class="sm:hidden"><span class="text-xs ${tierMessageStyle}">${tierMessage}</span>`;
+      }
+
+
       return currentStreak;
     }
 
 
     document.getElementById('generateBtn').addEventListener('click', async function () {
+      // First, check the daily claim limit.
+      if (checkAndEnforceDailyClaimLimit()) {
+        // If limit is reached, the function already updated the status and disabled the button.
+        // No need to show thinking image or change cursor if we are not proceeding.
+        // Error sound for limit reached is handled by updateStatus if it's an error state.
+        return; 
+      }
+      
+      initAudioContext(); // Ensure AudioContext is ready on user interaction
+      playSound('button_click');
+
       showThinkingImage();
       document.body.style.cursor = 'wait';
       updateStatus("Connecting to MetaMask...", false, false, false);
@@ -273,11 +993,21 @@
         }
         
         const signer = provider.getSigner();
-        const userAddress = await signer.getAddress(); // Get user address for balance check
+        currentUserAddress = await signer.getAddress(); // Store user address globally
 
         // Fetch and display balance right after connecting
-        await updateUserBalance(provider, userAddress); 
+        await updateUserBalance(provider, currentUserAddress); 
         updateClaimStreak(false); // Display current streak status
+        renderAchievements(); // Display existing achievements
+        await renderLeaderboard(provider); // Display leaderboard
+        renderTransactionHistory(); // Display transaction history
+        
+        // Check claim limit again after wallet connection, before actual claim
+        if (checkAndEnforceDailyClaimLimit()) {
+            removeThinkingImage();
+            document.body.style.cursor = 'default';
+            return;
+        }
         
         const contract = new ethers.Contract(tokenAddress, tokenAbi, signer); // For claim
 
@@ -290,18 +1020,30 @@
         // updateStatus(`Transaction submitted. View on Etherscan: ${etherscanBaseUrl}${tx.hash}`, false, false, false);
         
         await tx.wait();
+        playSound('claim_success');
 
+        incrementDailyClaimCount(); // Increment daily claim count
+        incrementTotalUserClaims(); // Increment total claims for achievements
+        addTransactionToHistory(tx.hash, 1); // Add to history, assuming 1 5LV
+        
         updateStatus("Transaction successful! 5LV tokens claimed.", false, true, true);
         
         // Refresh balance after successful claim
-        await updateUserBalance(provider, userAddress); 
-        const newStreak = updateClaimStreak(true); // Process successful claim and update streak
+        await updateUserBalance(provider, currentUserAddress); 
+        const newStreak = updateClaimStreak(true); // Process successful claim and update streak (also updates tier UI)
+        
+        checkAndEnforceDailyClaimLimit(); // Re-check and disable button if daily limit is now reached
+        checkAndAwardAchievements(); // Check for new achievements
+        await renderLeaderboard(provider); // Update leaderboard after claim
+        renderTransactionHistory(); // Update transaction history display
 
         // Check for streak milestones immediately after updating the streak
+        // The updateClaimStreak function now handles tier display.
+        // We can enhance status messages for milestones.
         if (newStreak === 3) {
-          updateStatus("🎉 3-Day Streak! Keep it up! 🎉", false, true, true);
-        } else if (newStreak === 7) { // Use 'else if' to avoid showing two messages if a 7-day message implies a 3-day one was also hit. Or just 'if' if they are independent. For now, 'else if' or separate 'if's are fine. Let's use separate 'if's for simplicity, in case other non-sequential milestones are added later.
-          updateStatus("🔥🔥 7-Day Streak! You're on fire! 🔥🔥", false, true, true);
+          updateStatus("🎉 3-Day Streak! You've reached Silver Tier! 🎉", false, true, true);
+        } else if (newStreak === 7) {
+          updateStatus("🔥🔥 7-Day Streak! You've achieved Gold Tier! 🔥🔥", false, true, true);
         }
         // Add more milestone checks here if needed, e.g., 14-day, 30-day
 
@@ -359,6 +1101,30 @@
         document.body.style.cursor = 'default';
       }
     });
+
+    // Initial check when the page loads or script is parsed
+    // We need to ensure MetaMask is connected before this, or handle it gracefully.
+    // For now, let's assume this check is fine here, but ideally, it's after user connection.
+    // A better place would be after eth_requestAccounts is successful.
+    window.addEventListener('load', () => {
+      // Attempt to check the limit on load. If MetaMask is not yet connected,
+      // this might not be the final state, but it's a good initial setup.
+      // The check within the button click handler is the more critical one.
+      if (window.ethereum && window.ethereum.selectedAddress) {
+        currentUserAddress = window.ethereum.selectedAddress; // Set if already connected
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        checkAndEnforceDailyClaimLimit(); // Check daily limit
+        renderAchievements(); // Render achievements if user is already connected
+        renderLeaderboard(provider); // Render leaderboard if user is already connected
+        renderTransactionHistory(); // Render transaction history if user is already connected
+      }
+      // We will also call checkAndEnforceDailyClaimLimit(), renderAchievements(), renderLeaderboard(), and renderTransactionHistory()
+      // after successful MetaMask connection inside the button click handler.
+    });
+    // Call initial setup functions on script load
+    applyInitialTheme();
+    applyInitialSoundPreference();
+    // renderTransactionHistory(); // Called by DOMContentLoaded now
   </script>
 </body>
 </html>
